@@ -10,7 +10,7 @@ setup(
     name='envsmtp',
     version='0.0.1',
     packages=['envsmtp'],
-    url='https://github.com/ofersadan85/i4u',
+    url='https://github.com/ofersadan85/envsmtp',
     license='MIT License',
     author='Ofer Sadan',
     author_email='ofersadan85@gmail.com',

@@ -8,7 +8,7 @@ requirements = Path(__file__).with_name('requirements.txt').read_text().split()
 
 setup(
     name='envsmtp',
-    version='0.0.1',
+    version='0.0.2',
     packages=['envsmtp'],
     url='https://github.com/ofersadan85/envsmtp',
     license='MIT License',

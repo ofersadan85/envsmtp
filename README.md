@@ -2,7 +2,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/ofersadan85/envsmtp)](https://github.com/ofersadan85/envsmtp/releases/latest)
 [![envsmtp on pypi](https://img.shields.io/pypi/v/envsmtp)](https://pypi.org/project/envsmtp/)
 [![MIT License](https://img.shields.io/github/license/ofersadan85/envsmtp)](LICENSE)
-[![unittests Status](https://img.shields.io/github/workflow/status/ofersadan85/envsmtp/Python%20package%20tests?label=tests)](tests)
+[![Python package tests](https://github.com/ofersadan85/envsmtp/actions/workflows/tests.yml/badge.svg)](https://github.com/ofersadan85/envsmtp/actions/workflows/tests.yml)
 
 Simple sending of smtp emails using environment     variables
 

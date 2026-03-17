@@ -1,0 +1,45 @@
+[project]
+name = "envsmtp"
+version = "0.3.0"
+description = "Simple sending of smtp emails using env variables"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Ofer Sadan", email = "ofersadan85@gmail.com" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "pydantic[email]>=2.12.5",
+    "python-dotenv>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/ofersadan85/envsmtp"
+Repository = "https://github.com/ofersadan85/envsmtp"
+Issues = "https://github.com/ofersadan85/envsmtp/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["envsmtp*"]
+
+[tool.ruff]
+line-length = 120

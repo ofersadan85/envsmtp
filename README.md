@@ -1,4 +1,5 @@
 # envsmtp
+
 [![Latest Release](https://img.shields.io/github/v/release/ofersadan85/envsmtp)](https://github.com/ofersadan85/envsmtp/releases/latest)
 [![envsmtp on pypi](https://img.shields.io/pypi/v/envsmtp)](https://pypi.org/project/envsmtp/)
 [![MIT License](https://img.shields.io/github/license/ofersadan85/envsmtp)](LICENSE)
@@ -7,17 +8,20 @@
 Simple sending of smtp emails using environment     variables
 
 ## Install
+
 [![envsmtp on pypi](https://img.shields.io/pypi/v/envsmtp)](https://pypi.org/project/envsmtp/)
 ![](https://img.shields.io/pypi/wheel/envsmtp)
 
     pip install --upgrade envsmtp
 
 ## Environment Variables
+
 You must set `SMTP_USER` and `SMTP_PASS` in your environment with your user and password!
 
 See additional optional settings in [example.env](example.env)
 
 ## Usage
+
 This package will by default use STARTTLS settings for `smtp.gmail.com` on port 587. If you wish to change these settings, you can set your own environment variables for `SMTP_HOST` and `SMTP_PORT`
 
 Once installed, here's a simple example of how to use this package:
@@ -26,7 +30,7 @@ Once installed, here's a simple example of how to use this package:
 
     msg = EmailMessage(
         sender="sender@example.com",
-        receipients="receipient@example.com",
+        recipients="recipient@example.com",
         subject="envsmtp test",
         body="This is just a test message",
     )
@@ -43,7 +47,7 @@ To send with attachments:
     ]
     msg = EmailMessage(
         sender="sender@example.com",
-        receipients="receipient@example.com",
+        recipients="recipient@example.com",
         subject="envsmtp test",
         body="This is just a test message",
         attachments=attachments,
@@ -52,9 +56,9 @@ To send with attachments:
 
 ## Requirements
 
-![](https://img.shields.io/pypi/pyversions/envsmtp)
+![envsmtp](https://img.shields.io/pypi/pyversions/envsmtp)
 
-Tested with & designed for python 3.10, see [requirements.txt](requirements.txt) for additional dependencies
+Supports Python 3.10 and above (currently tested in CI on 3.10-3.14). Project dependencies are defined in [pyproject.toml](pyproject.toml).
 
 ## Contributing
 
@@ -78,7 +82,7 @@ package "as-is" without any implied warranty or liability, usage is your own res
 
 Just because I like badges
 
-![](https://img.shields.io/github/languages/code-size/ofersadan85/envsmtp)
+![Code Size](https://img.shields.io/github/languages/code-size/ofersadan85/envsmtp)
 ![Pypi downloads per month](https://img.shields.io/pypi/dm/envsmtp?label=pypi%20downloads)
 ![Pypi downloads per week](https://img.shields.io/pypi/dw/envsmtp?label=pypi%20downloads)
 ![Pypi downloads per day](https://img.shields.io/pypi/dd/envsmtp?label=pypi%20downloads)

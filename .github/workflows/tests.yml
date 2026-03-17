@@ -41,11 +41,11 @@ jobs:
         run: uv tool run ty check
       - name: Test SMTP integration (requires SMTP secrets exist)
         env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_TEST: ${{ secrets.SMTP_TEST }}
-          SMTP_HOST: smtp.gmail.com
-          SMTP_PORT: 587
         run: uv run pytest
   analyze:
     name: Analyze

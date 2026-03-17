@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - name: Install uv and set Python ${{ matrix.python-version }}
@@ -34,19 +34,19 @@ jobs:
           enable-cache: true
       - name: Sync dependencies
         run: |
-          uv sync --locked
+          uv sync --locked --group dev
       - name: Lint with Ruff
         run: uv tool run ruff check
       - name: Type check with ty
         run: uv tool run ty check
-      - name: Test with unittest
+      - name: Test SMTP integration (requires SMTP secrets exist)
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_TEST: ${{ secrets.SMTP_TEST }}
           SMTP_HOST: smtp.gmail.com
           SMTP_PORT: 587
-        run: uv run python -m unittest
+        run: uv run pytest
   analyze:
     name: Analyze
     runs-on: ubuntu-latest

@@ -58,7 +58,19 @@ To send with attachments:
 
 ![envsmtp](https://img.shields.io/pypi/pyversions/envsmtp)
 
-Supports Python 3.10 and above (currently tested in CI on 3.10-3.14). Project dependencies are defined in [pyproject.toml](pyproject.toml).
+Supports Python 3.10 and above (currently tested in CI on 3.10-3.13). Project dependencies are defined in [pyproject.toml](pyproject.toml).
+
+## Testing
+
+Install project + dev dependencies:
+
+    uv sync --locked --group dev
+
+Run all tests (default + integration) with coverage using a single command:
+
+    just test
+
+Integration tests require `SMTP_USER`, `SMTP_PASS`, and `SMTP_TEST`. If missing, integration tests are skipped.
 
 ## Contributing
 

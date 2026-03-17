@@ -1,29 +1,33 @@
 import os
-import dotenv
 import smtplib
-
-from pathlib import Path
-from typing import Any
-from pydantic import BaseModel, NameEmail, FilePath
-
-from email.utils import formatdate
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formatdate
+from pathlib import Path
+from typing import Any, Sequence
+
+import dotenv
+from pydantic import BaseModel, FilePath, NameEmail
 
 COMMASPACE = ", "
+
+
+def get_required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise EnvironmentError(f"Missing required environment variable: {name}")
+    return value
 
 
 class EmailAttachment(BaseModel):
     content: FilePath | bytes
     filename: str = ""
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        if isinstance(self.content, FilePath | Path | str):
+    def model_post_init(self, __context: Any) -> None:
+        if isinstance(self.content, Path | str):
             path = Path(self.content)
-            if not path.is_file():
-                raise FileNotFoundError(f"No file found at: {path}")
+            assert path.is_file(), f"No file found at: {path} (Should be caught by FilePath validation)"
             if not self.filename:
                 self.filename = path.name
             self.content = path.read_bytes()
@@ -31,6 +35,7 @@ class EmailAttachment(BaseModel):
             raise ValueError("Attempted to send bytes without filename")
 
     def as_mime_part(self) -> MIMEApplication:
+        assert isinstance(self.content, bytes), "Content should be bytes at this point"
         mime_part = MIMEApplication(self.content, self.filename)
         mime_part["Content-Disposition"] = f'attachment; filename="{self.filename}"'
         return mime_part
@@ -38,22 +43,22 @@ class EmailAttachment(BaseModel):
 
 class EmailMessage(BaseModel):
     sender: NameEmail
-    receipients: NameEmail | list[NameEmail]
+    recipients: NameEmail | list[NameEmail]
     subject: str = ""
     body: str = ""
     rtl: bool = False
-    attachments: EmailAttachment | list[EmailAttachment] = ()
+    attachments: EmailAttachment | Sequence[EmailAttachment] = ()
     send: bool = False
 
     def as_mime(self) -> MIMEMultipart:
-        if isinstance(self.receipients, NameEmail):
-            self.receipients = [self.receipients]
+        if isinstance(self.recipients, NameEmail):
+            self.recipients = [self.recipients]
         if isinstance(self.attachments, EmailAttachment):
             self.attachments = [self.attachments]
 
         mime = MIMEMultipart()
         mime["From"] = str(self.sender)
-        mime["To"] = COMMASPACE.join(r.email for r in self.receipients)
+        mime["To"] = COMMASPACE.join(r.email for r in self.recipients)
         mime["Date"] = formatdate(localtime=True)
         mime["Subject"] = self.subject
 
@@ -74,16 +79,15 @@ class EmailMessage(BaseModel):
     def smtp_send(self) -> bool:
         mime = self.as_mime()
         dotenv.load_dotenv()
-        SMTP_USER = os.getenv("SMTP_USER")
-        SMTP_PASS = os.getenv("SMTP_PASS")
+        SMTP_USER = get_required_env("SMTP_USER")
+        SMTP_PASS = get_required_env("SMTP_PASS")
         SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        SMTP_PORT = int(os.getenv("SMTP_POST", "587"))
-        SMTP_TEST = os.getenv("SMTP_TEST")
-        RECEIPIENT = SMTP_TEST if SMTP_TEST else mime["To"]
+        SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+        RECIPIENT = os.getenv("SMTP_TEST", mime["To"])
         server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
         server.ehlo()
         server.starttls()
         server.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_USER, RECEIPIENT.split(COMMASPACE), str(mime))
+        server.sendmail(SMTP_USER, RECIPIENT.split(COMMASPACE), str(mime))
         server.close()
         return True

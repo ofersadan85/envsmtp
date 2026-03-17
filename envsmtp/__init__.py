@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import dotenv
-from pydantic import BaseModel, FilePath, NameEmail
+from pydantic import BaseModel, Field, FilePath, NameEmail
 
 COMMASPACE = ", "
 
@@ -41,8 +41,17 @@ class EmailAttachment(BaseModel):
         return mime_part
 
 
+def sender_from_env() -> NameEmail:
+    SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME")
+    SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL")
+    if SMTP_FROM_NAME and SMTP_FROM_EMAIL:
+        return NameEmail(name=SMTP_FROM_NAME, email=SMTP_FROM_EMAIL)
+    SMTP_FROM = os.getenv("SMTP_FROM", get_required_env("SMTP_USER"))
+    return NameEmail(name=SMTP_FROM.split("@")[0], email=SMTP_FROM)
+
+
 class EmailMessage(BaseModel):
-    sender: NameEmail
+    sender: NameEmail = Field(default_factory=sender_from_env)
     recipients: NameEmail | list[NameEmail]
     subject: str = ""
     body: str = ""

@@ -10,19 +10,36 @@ Simple sending of smtp emails using environment     variables
 ## Install
 
 [![envsmtp on pypi](https://img.shields.io/pypi/v/envsmtp)](https://pypi.org/project/envsmtp/)
-![](https://img.shields.io/pypi/wheel/envsmtp)
+![envsmtp](https://img.shields.io/pypi/wheel/envsmtp)
 
     pip install --upgrade envsmtp
 
 ## Environment Variables
 
-You must set `SMTP_USER` and `SMTP_PASS` in your environment with your user and password!
+By default (STARTTLS + auth mode), you must set `SMTP_USER` and `SMTP_PASS` in your environment.
+
+To send without TLS/SSL/auth, set:
+
+- `SMTP_USE_TLS=false`
+- `SMTP_USE_SSL=false`
+- `SMTP_NO_AUTH=true`
+- `SMTP_FROM=sender@example.com` (required whenever `SMTP_USER` is not set, regardless of auth mode, or if you want to use a different sender than the SMTP_USER email)
+
+Alternatively, you may set *both* SMTP_FROM_NAME and SMTP_FROM_EMAIL instead of SMTP_FROM:
+
+- `SMTP_FROM_NAME=Tests`
+- `SMTP_FROM_EMAIL=tests@example.com`
 
 See additional optional settings in [example.env](example.env)
 
 ## Usage
 
-This package will by default use STARTTLS settings for `smtp.gmail.com` on port 587. If you wish to change these settings, you can set your own environment variables for `SMTP_HOST` and `SMTP_PORT`
+This package defaults to STARTTLS on `smtp.gmail.com:587` with SMTP auth enabled.
+You can change host/port with `SMTP_HOST` and `SMTP_PORT`, and transport/auth behavior with:
+
+- `SMTP_USE_TLS` (default: `true`)
+- `SMTP_USE_SSL` (default: `false`)
+- `SMTP_NO_AUTH` (default: `false`)
 
 Once installed, here's a simple example of how to use this package:
 

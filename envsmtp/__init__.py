@@ -20,6 +20,11 @@ def get_required_env(name: str) -> str:
     return value
 
 
+def get_bool_env(name: str, default: bool) -> bool:
+    value = os.getenv(name, default=str(default))
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
 class EmailAttachment(BaseModel):
     content: FilePath | bytes
     filename: str = ""
@@ -46,7 +51,9 @@ def sender_from_env() -> NameEmail:
     SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL")
     if SMTP_FROM_NAME and SMTP_FROM_EMAIL:
         return NameEmail(name=SMTP_FROM_NAME, email=SMTP_FROM_EMAIL)
-    SMTP_FROM = os.getenv("SMTP_FROM", get_required_env("SMTP_USER"))
+    SMTP_FROM = os.getenv("SMTP_FROM") or os.getenv("SMTP_USER")
+    if not SMTP_FROM:
+        raise EnvironmentError("Missing required environment variable: SMTP_FROM or SMTP_USER")
     return NameEmail(name=SMTP_FROM.split("@")[0], email=SMTP_FROM)
 
 
@@ -88,15 +95,29 @@ class EmailMessage(BaseModel):
     def smtp_send(self) -> bool:
         mime = self.as_mime()
         dotenv.load_dotenv()
-        SMTP_USER = get_required_env("SMTP_USER")
-        SMTP_PASS = get_required_env("SMTP_PASS")
         SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
         SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+        SMTP_USE_TLS = get_bool_env("SMTP_USE_TLS", default=True)
+        SMTP_USE_SSL = get_bool_env("SMTP_USE_SSL", default=False)
+        SMTP_NO_AUTH = get_bool_env("SMTP_NO_AUTH", default=False)
         RECIPIENT = os.getenv("SMTP_TEST", mime["To"])
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+        if SMTP_USE_SSL:
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT)
+        else:
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
         server.ehlo()
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_USER, RECIPIENT.split(COMMASPACE), str(mime))
+        if SMTP_USE_TLS and not SMTP_USE_SSL:
+            server.starttls()
+            server.ehlo()
+
+        if SMTP_NO_AUTH:
+            sender_address = self.sender.email
+        else:
+            SMTP_USER = get_required_env("SMTP_USER")
+            SMTP_PASS = get_required_env("SMTP_PASS")
+            server.login(SMTP_USER, SMTP_PASS)
+            sender_address = SMTP_USER
+
+        server.sendmail(sender_address, RECIPIENT.split(COMMASPACE), str(mime))
         server.close()
         return True

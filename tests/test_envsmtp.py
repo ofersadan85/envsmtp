@@ -1,13 +1,15 @@
 import os
+import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import dotenv
 import pytest
 from pydantic import NameEmail, ValidationError
 
-from envsmtp import EmailAttachment, EmailMessage
+from envsmtp import EmailAttachment, EmailMessage, get_bool_env
 
 dotenv.load_dotenv()
 SMTP_ENV_VARS = ("SMTP_USER", "SMTP_PASS", "SMTP_TEST")
@@ -20,6 +22,13 @@ def email_body() -> str:
 
 def smtp_env_ready() -> bool:
     return all(os.getenv(var_name) for var_name in SMTP_ENV_VARS)
+
+
+def smtp_no_auth_env_ready() -> bool:
+    has_sender = os.getenv("SMTP_FROM") or os.getenv("SMTP_USER")
+    has_test_recipient = os.getenv("SMTP_TEST")
+    no_auth = get_bool_env("SMTP_NO_AUTH", default=False)
+    return bool(has_sender and has_test_recipient and no_auth)
 
 
 SIMPLE_MESSAGE = EmailMessage(
@@ -70,6 +79,25 @@ def test_bad_attachment():
 def test_missing_env_variables():
     with pytest.raises(EnvironmentError):
         SIMPLE_MESSAGE.model_copy().smtp_send()
+
+
+@pytest.mark.skipif(not smtp_no_auth_env_ready(), reason="Missing SMTP_FROM/SMTP_TEST environment variables")
+def test_basic_send_no_tls_ssl_auth(monkeypatch: pytest.MonkeyPatch):
+    mock_server = MagicMock()
+    monkeypatch.setattr(smtplib, "SMTP", lambda *_args, **_kwargs: mock_server)
+    monkeypatch.setenv("SMTP_USE_TLS", "false")
+    monkeypatch.setenv("SMTP_USE_SSL", "false")
+    monkeypatch.setenv("SMTP_NO_AUTH", "true")
+
+    msg = SIMPLE_MESSAGE.model_copy()
+    msg.sender = NameEmail(name="No Auth Sender", email="noauth@example.com")
+
+    assert msg.smtp_send() is True
+    mock_server.starttls.assert_not_called()
+    mock_server.login.assert_not_called()
+    mock_server.sendmail.assert_called_once()
+    sender_arg = mock_server.sendmail.call_args[0][0]
+    assert sender_arg == "noauth@example.com"
 
 
 @pytest.mark.skipif(not smtp_env_ready(), reason="Missing SMTP_USER/SMTP_PASS/SMTP_TEST environment variables")
